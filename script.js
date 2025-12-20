@@ -310,12 +310,12 @@ function renderApp() {
 
 function renderIntroScreen() {
     return `
-    <div class="flex flex-col items-center justify-center min-h-screen relative overflow-hidden">
+    <div class="flex flex-col items-center justify-center h-full w-full relative overflow-y-auto py-10">
         <!-- BG -->
-        <div class="absolute inset-0 z-0 bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 opacity-90"></div>
-        <div class="absolute inset-0 z-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-30 animate-pulse"></div>
+        <div class="fixed inset-0 z-0 bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 opacity-90"></div>
+        <div class="fixed inset-0 z-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-30 animate-pulse"></div>
 
-        <div class="z-10 text-center p-6 max-w-5xl w-full flex flex-col items-center animate-fade-in">
+        <div class="z-10 text-center p-6 max-w-5xl w-full flex flex-col items-center animate-fade-in relative">
             <div class="mb-8 p-4 bg-white/5 rounded-full backdrop-blur-sm border border-white/10 shadow-2xl">
                 <i data-lucide="trophy" class="w-16 h-16 text-yellow-400 animate-bounce-gentle"></i>
             </div>
@@ -346,7 +346,7 @@ function renderIntroScreen() {
                 <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/50 to-transparent w-1/2 skew-x-12 -translate-x-full group-hover:animate-shine"></div>
             </button>
 
-            <div class="mt-16 text-white/40 font-mono text-sm tracking-widest uppercase">
+            <div class="mt-8 text-white font-bold text-base tracking-widest uppercase z-50 drop-shadow-md">
                 Created and Developed by: Archie Abona
             </div>
         </div>
