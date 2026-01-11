@@ -8,59 +8,57 @@ const INITIAL_TEAMS = [
 
 // 40+ Items to ensure grid is full
 const RAW_QUESTIONS = [
-    // NEW QUESTIONS
-    { q: "Who is known as the Father of Many Nations?", a: "Abraham", points: 100 },
-    { q: "What is the last word in the Bible?", a: "Amen", points: 100 },
-    { q: "Who wrote the 23rd Psalm?", a: "David", points: 100 },
-    { q: "What kind of animal did Jesus ride into Jerusalem?", a: "Donkey", points: 100 },
-    { q: "Who was the mother of Jesus?", a: "Mary", points: 100 },
-    { q: "What is the first Gospel in the New Testament?", a: "Matthew", points: 100 },
-    { q: "Who sold his birthright for a bowl of stew?", a: "Esau", points: 100 },
-    { q: "What city was destroyed by fire and brimstone?", a: "Sodom", points: 100 },
-    
-    { q: "Who wrestled with God?", a: "Jacob", points: 200 },
-    { q: "Who was the sister of Moses?", a: "Miriam", points: 200 },
-    { q: "What spoke to Balaam?", a: "Donkey", points: 200 },
-    { q: "Who was the left-handed Judge?", a: "Ehud", points: 200 },
-    { q: "Who found honey in the carcass of a lion?", a: "Samson", points: 200 },
-    { q: "Who had 700 wives?", a: "Solomon", points: 200 },
-    { q: "Who hid the spies in Jericho?", a: "Rahab", points: 200 },
-    { q: "Who was the 'Weeping Prophet'?", a: "Jeremiah", points: 200 },
+    // --- LEVEL 1: FOUNDATION (100-200) ---
+    { q: "What is the shortest verse in the Bible?", a: "Jesus wept", points: 100 },
+    { q: "Who killed the giant Goliath?", a: "David", points: 100 },
+    { q: "How many days and nights did it rain on Noah?", a: "40", points: 100 },
+    { q: "What is the first book of the New Testament?", a: "Matthew", points: 100 },
+    { q: "Who was the 'Father of Many Nations'?", a: "Abraham", points: 100 },
+    { q: "Who was thrown into a den of lions?", a: "Daniel", points: 200 },
+    { q: "Who was the strongest man in the Bible?", a: "Samson", points: 200 },
+    { q: "Who was the wisest king?", a: "Solomon", points: 200 },
+    { q: "What young boy heard God calling his name at night?", a: "Samuel", points: 200 },
+    { q: "Who climbed a sycamore tree to see Jesus?", a: "Zacchaeus", points: 200 },
 
-    { q: "Who fell out of a window while Paul preached?", a: "Eutychus", points: 300 },
-    { q: "What is the longest chapter in the Bible?", a: "Psalm 119", points: 300 },
-    { q: "Who was the first High Priest?", a: "Aaron", points: 300 },
-    { q: "Who washed his hands of Jesus' trial?", a: "Pilate", points: 300 },
-    { q: "Who was the great-grandmother of King David?", a: "Ruth", points: 300 },
-    { q: "Which disciple was a tax collector?", a: "Matthew", points: 300 },
-    { q: "Who was struck blind on the road to Damascus?", a: "Saul/Paul", points: 300 },
-    { q: "Who asked for the head of John the Baptist?", a: "Salome", points: 300 },
+    // --- LEVEL 2: INTERMEDIATE (300-400) ---
+    { q: "Who had a coat of many colors?", a: "Joseph", points: 300 },
+    { q: "Who was the first Christian martyr?", a: "Stephen", points: 300 },
+    { q: "Which queen saved the Jewish people from Haman?", a: "Esther", points: 300 },
+    { q: "Who ate locusts and wild honey?", a: "John the Baptist", points: 300 },
+    { q: "Who was struck blind on the road to Damascus?", a: "Saul / Paul", points: 300 },
+    { q: "What city's walls fell down after shouting?", a: "Jericho", points: 400 },
+    { q: "Who touched the Ark of the Covenant and died?", a: "Uzzah", points: 400 },
+    { q: "Who was the female Judge who led Israel to victory?", a: "Deborah", points: 400 },
+    { q: "Which disciple walked on water?", a: "Peter", points: 400 },
+    { q: "Who was the seller of purple cloth?", a: "Lydia", points: 400 },
 
-    { q: "What is the root of all evil?", a: "Love of Money", points: 400 },
-    { q: "Who doubted Jesus until he saw the scars?", a: "Thomas", points: 400 },
-    { q: "Who was the first Christian martyr?", a: "Stephen", points: 400 },
-    { q: "Who raised Lazarus from the dead?", a: "Jesus", points: 400 },
-    { q: "What instrument did David play?", a: "Harp/Lyre", points: 400 },
-    { q: "Who was the female Judge of Israel?", a: "Deborah", points: 400 },
-    { q: "Who asked Pilate for the body of Jesus?", a: "Joseph of Arimathea", points: 400 },
-    { q: "How many books are in the Bible?", a: "66", points: 400 },
+    // --- LEVEL 3: ADVANCED (500-600) ---
+    { q: "Who saw the writing on the wall?", a: "Belshazzar", points: 500 },
+    { q: "Who had a donkey that spoke to him?", a: "Balaam", points: 500 },
+    { q: "Who was the left-handed Judge?", a: "Ehud", points: 500 },
+    { q: "Who is known as the 'Weeping Prophet'?", a: "Jeremiah", points: 500 },
+    { q: "Who fell out of a window while Paul was preaching?", a: "Eutychus", points: 500 },
+    { q: "Who was the great-grandmother of King David?", a: "Ruth", points: 600 },
+    { q: "What king ate grass like an ox for 7 years?", a: "Nebuchadnezzar", points: 600 },
+    { q: "Who lied to the Holy Spirit and fell down dead?", a: "Ananias & Sapphira", points: 600 },
+    { q: "What is the 'Place of the Skull' called?", a: "Golgotha", points: 600 },
+    { q: "Who had 700 wives and 300 concubines?", a: "Solomon", points: 600 },
 
-    { q: "Who saw a wheel within a wheel?", a: "Ezekiel", points: 500 },
-    { q: "Who is the 'Alpha and Omega'?", a: "Jesus", points: 500 },
-    { q: "What river turned into blood?", a: "Nile", points: 500 },
-    { q: "Who did God speak to through a burning bush?", a: "Moses", points: 500 },
-    { q: "Who was the brother of Mary and Martha?", a: "Lazarus", points: 500 },
-    { q: "Where were the disciples first called Christians?", a: "Antioch", points: 500 },
-    
-    // SPECIALS
-    { type: 'blessing', q: "DIVINE FAVOR!", a: "Free Points!", points: 200 },
-    { type: 'trial', q: "FLOOD WARNING!", a: "Lose Points", points: -100 },
-    { type: 'blessing', q: "MANNA FROM HEAVEN", a: "Bonus Points", points: 300 },
-    { type: 'trial', q: "LION'S DEN", a: "Danger!", points: -200 },
-    { type: 'blessing', q: "MIRACLE CATCH", a: "Big Bonus!", points: 500 },
-    { type: 'trial', q: "WALLS FALL DOWN", a: "Collapse!", points: -300 },
+    // --- MYSTERY BOXES: HIGH REWARDS ---
+    { type: 'blessing', q: "JUBILEE JACKPOT!", a: "Massive Bonus!", points: 1000 },
+    { type: 'blessing', q: "KING'S RANSOM", a: "Huge Reward!", points: 850 },
+    { type: 'blessing', q: "PROPHET'S REWARD", a: "Big Bonus!", points: 750 },
+
+    // --- MYSTERY BOXES: THE PUNISHMENT ---
+    { type: 'trial', q: "THE GREAT FAMINE", a: "Oh no! Major Loss!", points: -500 },
+
+    // --- MYSTERY BOXES: STANDARD & SWAPS ---
     { type: 'swap', q: "DIVINE INTERVENTION!", a: "Swap Scores?", points: 0 },
     { type: 'swap', q: "THE LAST SHALL BE FIRST", a: "Swap Scores?", points: 0 },
+    { type: 'trial', q: "SHIPWRECKED!", a: "Lost supplies", points: -200 },
+    { type: 'blessing', q: "WIDOW'S OIL", a: "Unexpected Blessing", points: 300 },
+    { type: 'trial', q: "FIERY FURNACE", a: "It's getting hot!", points: -150 },
+    { type: 'blessing', q: "FISH & LOAVES", a: "Multiplied!", points: 400 },
 ];
 
 // --- 2. STATE MANAGEMENT ---
