@@ -5,22 +5,737 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rainbow Rumble: Bible Edition</title>
     
-    <!-- Tailwind CSS (CDN) -->
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- Lucide Icons (CDN) -->
+    <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
 
-    <!-- Link to your custom CSS file -->
-    <link rel="stylesheet" href="style.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+        
+        body { font-family: 'Inter', sans-serif; }
+        
+        @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+        .animate-fade-in { animation: fade-in 0.5s ease-out; }
+        
+        @keyframes slide-up { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .animate-slide-up { animation: slide-up 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
+        
+        @keyframes bounce-gentle { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        .animate-bounce-gentle { animation: bounce-gentle 2s infinite; }
+
+        @keyframes shine { 100% { transform: translateX(200%) skewX(-12deg); } }
+        .group:hover .animate-shine { animation: shine 1s; }
+
+        @keyframes spin-slow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .animate-spin-slow { animation: spin-slow 3s linear infinite; }
+
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #1e293b; }
+        ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #64748b; }
+    </style>
 </head>
 <body class="bg-slate-900 text-white min-h-screen overflow-hidden selection:bg-purple-500">
 
-    <div id="app" class="h-screen w-full relative">
-        <!-- Content will be injected here by JavaScript -->
-    </div>
+    <div id="app" class="h-screen w-full relative"></div>
 
-    <!-- Link to your custom JavaScript file -->
-    <script src="script.js"></script>
+    <script>
+        // --- 1. GAME DATA ---
+
+        const INITIAL_TEAMS = [
+            { id: 1, name: "Team Moses", color: "bg-red-600", score: 0 },
+            { id: 2, name: "Team David", color: "bg-blue-600", score: 0 },
+            { id: 3, name: "Team Elijah", color: "bg-yellow-600", score: 0 }
+        ];
+
+        // Grid Colors (Phase 1)
+        const GRID_COLORS = [
+            'bg-gradient-to-br from-indigo-500 to-purple-600 border-indigo-800',
+            'bg-gradient-to-br from-blue-500 to-cyan-600 border-blue-800',
+            'bg-gradient-to-br from-purple-500 to-pink-600 border-purple-800',
+        ];
+
+        // --- PHASE 2: RAINBOW ROUND (High Difficulty & High Points) ---
+        const RAINBOW_SPECIALS = [
+            { 
+                id: 'r1',
+                type: 'special', 
+                rainbowColor: 'RED',
+                displayColor: 'bg-red-600',
+                modalClass: 'bg-gradient-to-b from-red-900 to-red-600 border-red-400',
+                title: "RED BOX OF RUIN",
+                q: "PENALTY: THE GREAT FAMINE", 
+                a: "Lose 500 Points!", 
+                points: -500,
+                icon: 'alert-triangle'
+            },
+            { 
+                id: 'r2',
+                type: 'special', 
+                rainbowColor: 'ORANGE',
+                displayColor: 'bg-orange-500',
+                modalClass: 'bg-gradient-to-b from-orange-900 to-orange-600 border-orange-400',
+                title: "ORANGE CHALLENGE",
+                q: "TASK: Name the 12 Sons of Jacob (Tribes of Israel).", 
+                a: "Reuben, Simeon, Levi, Judah, Dan, Naphtali, Gad, Asher, Issachar, Zebulun, Joseph, Benjamin", 
+                points: 1500,
+                icon: 'users'
+            },
+            { 
+                id: 'r3',
+                type: 'special', 
+                rainbowColor: 'YELLOW',
+                displayColor: 'bg-yellow-500',
+                modalClass: 'bg-gradient-to-b from-yellow-800 to-yellow-500 border-yellow-300',
+                title: "YELLOW CHALLENGE",
+                q: "TASK: Recite Psalm 23 (The Lord is my Shepherd) perfectly.", 
+                a: "The Lord is my shepherd; I shall not want...", 
+                points: 2000,
+                icon: 'book-open'
+            },
+            { 
+                id: 'r4',
+                type: 'special', 
+                rainbowColor: 'GREEN',
+                displayColor: 'bg-green-600',
+                modalClass: 'bg-gradient-to-b from-green-900 to-green-600 border-green-400',
+                title: "GREEN CHALLENGE",
+                q: "TASK: Name all 9 Fruits of the Spirit.", 
+                a: "Love, Joy, Peace, Patience, Kindness, Goodness, Faithfulness, Gentleness, Self-control", 
+                points: 1500,
+                icon: 'sprout'
+            },
+            { 
+                id: 'r5',
+                type: 'special', 
+                rainbowColor: 'BLUE',
+                displayColor: 'bg-blue-600',
+                modalClass: 'bg-gradient-to-b from-blue-900 to-blue-600 border-blue-400',
+                title: "BLUE CHALLENGE",
+                q: "TASK: Name the 10 Plagues of Egypt in order.", 
+                a: "Blood, Frogs, Gnats, Flies, Livestock, Boils, Hail, Locusts, Darkness, Firstborn", 
+                points: 2500,
+                icon: 'droplets'
+            },
+            { 
+                id: 'r6',
+                type: 'special', 
+                rainbowColor: 'INDIGO',
+                displayColor: 'bg-indigo-600',
+                modalClass: 'bg-gradient-to-b from-indigo-900 to-indigo-600 border-indigo-400',
+                title: "INDIGO CHALLENGE",
+                q: "TRIVIA: Who are the 4 Major Prophets in the Old Testament?", 
+                a: "Isaiah, Jeremiah, Ezekiel, Daniel", 
+                points: 1500,
+                icon: 'scroll'
+            },
+            { 
+                id: 'r7',
+                type: 'special', 
+                rainbowColor: 'VIOLET',
+                displayColor: 'bg-purple-600',
+                modalClass: 'bg-gradient-to-b from-purple-900 to-purple-600 border-purple-400',
+                title: "VIOLET CHALLENGE",
+                q: "TASK: Recite the Beatitudes (Blessed are the...). Name at least 6.", 
+                a: "Poor in spirit, Mourn, Meek, Hunger/Thirst, Merciful, Pure in heart, Peacemakers, Persecuted", 
+                points: 2000,
+                icon: 'star'
+            }
+        ];
+
+        // --- PHASE 1: STANDARD 40 BOXES (Trivia + Standard Mystery) ---
+        const STANDARD_QUESTIONS = [
+            // LEVEL 1 (100-200)
+            { q: "What is the shortest verse in the Bible?", a: "Jesus wept", points: 100 },
+            { q: "Who killed the giant Goliath?", a: "David", points: 100 },
+            { q: "How many days and nights did it rain on Noah?", a: "40", points: 100 },
+            { q: "What is the first book of the New Testament?", a: "Matthew", points: 100 },
+            { q: "Who was the 'Father of Many Nations'?", a: "Abraham", points: 100 },
+            { q: "Who was thrown into a den of lions?", a: "Daniel", points: 200 },
+            { q: "Who was the strongest man in the Bible?", a: "Samson", points: 200 },
+            { q: "Who was the wisest king?", a: "Solomon", points: 200 },
+            { q: "What young boy heard God calling his name at night?", a: "Samuel", points: 200 },
+            { q: "Who climbed a sycamore tree to see Jesus?", a: "Zacchaeus", points: 200 },
+            // LEVEL 2 (300-400)
+            { q: "Who had a coat of many colors?", a: "Joseph", points: 300 },
+            { q: "Who was the first Christian martyr?", a: "Stephen", points: 300 },
+            { q: "Which queen saved the Jewish people from Haman?", a: "Esther", points: 300 },
+            { q: "Who ate locusts and wild honey?", a: "John the Baptist", points: 300 },
+            { q: "Who was struck blind on the road to Damascus?", a: "Saul / Paul", points: 300 },
+            { q: "What city's walls fell down after shouting?", a: "Jericho", points: 400 },
+            { q: "Who touched the Ark of the Covenant and died?", a: "Uzzah", points: 400 },
+            { q: "Who was the female Judge who led Israel to victory?", a: "Deborah", points: 400 },
+            { q: "Which disciple walked on water?", a: "Peter", points: 400 },
+            { q: "Who was the seller of purple cloth?", a: "Lydia", points: 400 },
+            // LEVEL 3 (500-600)
+            { q: "Who saw the writing on the wall?", a: "Belshazzar", points: 500 },
+            { q: "Who had a donkey that spoke to him?", a: "Balaam", points: 500 },
+            { q: "Who was the left-handed Judge?", a: "Ehud", points: 500 },
+            { q: "Who is known as the 'Weeping Prophet'?", a: "Jeremiah", points: 500 },
+            { q: "Who fell out of a window while Paul was preaching?", a: "Eutychus", points: 500 },
+            { q: "Who was the great-grandmother of King David?", a: "Ruth", points: 600 },
+            { q: "What king ate grass like an ox for 7 years?", a: "Nebuchadnezzar", points: 600 },
+            { q: "Who lied to the Holy Spirit and fell down dead?", a: "Ananias & Sapphira", points: 600 },
+            { q: "What is the 'Place of the Skull' called?", a: "Golgotha", points: 600 },
+            { q: "Who had 700 wives and 300 concubines?", a: "Solomon", points: 600 },
+            // PHASE 1 MYSTERY FILLERS (Standard Blessings/Trials/Swaps)
+            { type: 'trial', q: "SHIPWRECKED!", a: "Lost supplies", points: -400 },
+            { type: 'blessing', q: "WIDOW'S OIL", a: "Unexpected Blessing", points: 600 },
+            { type: 'trial', q: "FIERY FURNACE", a: "It's getting hot!", points: -350 },
+            { type: 'blessing', q: "FISH & LOAVES", a: "Multiplied!", points: 800 },
+            { type: 'swap', q: "DIVINE INTERVENTION!", a: "Swap Scores?", points: 0 },
+            { type: 'swap', q: "THE LAST SHALL BE FIRST", a: "Swap Scores?", points: 0 },
+            { q: "Who wrote most of the Psalms?", a: "David", points: 300 },
+            { q: "Who was the first man?", a: "Adam", points: 100 },
+            { q: "Who was the first woman?", a: "Eve", points: 100 },
+            { q: "What animal spoke to Eve?", a: "Serpent", points: 100 },
+        ];
+
+        // --- 2. STATE ---
+        let state = {
+            screen: 'intro', // 'intro', 'game', 'bonus'
+            teams: JSON.parse(JSON.stringify(INITIAL_TEAMS)),
+            gridItems: [],
+            rainbowItems: [], 
+            activeCard: null,
+            showAnswer: false,
+            winner: null,
+            soundEnabled: true,
+            swapInitiatorId: null,
+            boxCount: 40 // Default
+        };
+
+        const app = document.getElementById('app');
+
+        // --- 3. SOUND ENGINE ---
+        function playSound(type) {
+            if (!state.soundEnabled) return;
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            if (!AudioContext) return;
+            const ctx = new AudioContext();
+            const now = ctx.currentTime;
+            const gain = ctx.createGain();
+            gain.connect(ctx.destination);
+
+            if (type === 'click') {
+                const osc = ctx.createOscillator();
+                osc.type = 'sine'; osc.frequency.setValueAtTime(800, now); osc.frequency.exponentialRampToValueAtTime(300, now + 0.1);
+                gain.gain.setValueAtTime(0.3, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                osc.connect(gain); osc.start(now); osc.stop(now + 0.1);
+            } else if (type === 'reveal') {
+                const osc = ctx.createOscillator();
+                osc.type = 'triangle'; osc.frequency.setValueAtTime(300, now); osc.frequency.linearRampToValueAtTime(600, now + 0.2);
+                gain.gain.setValueAtTime(0.3, now); gain.gain.linearRampToValueAtTime(0.01, now + 0.3);
+                osc.connect(gain); osc.start(now); osc.stop(now + 0.3);
+            } else if (type === 'score') {
+                [523.25, 659.25, 783.99, 1046.50].forEach((freq, i) => {
+                    const o = ctx.createOscillator(); const g = ctx.createGain();
+                    o.connect(g); g.connect(ctx.destination); o.type = 'sine'; o.frequency.value = freq;
+                    g.gain.setValueAtTime(0.1, now + i * 0.05); g.gain.exponentialRampToValueAtTime(0.01, now + i * 0.05 + 0.3);
+                    o.start(now + i * 0.05); o.stop(now + i * 0.05 + 0.4);
+                });
+            } else if (type === 'trial') {
+                [100, 145].forEach((freq) => {
+                    const o = ctx.createOscillator(); const g = ctx.createGain();
+                    o.connect(g); g.connect(ctx.destination); o.type = 'sawtooth'; o.frequency.value = freq;
+                    g.gain.setValueAtTime(0.2, now); g.gain.linearRampToValueAtTime(0.01, now + 0.5);
+                    o.start(now); o.stop(now + 0.5);
+                });
+            } else if (type === 'swap') {
+                const o1 = ctx.createOscillator(); const o2 = ctx.createOscillator();
+                o1.type = 'sine'; o2.type = 'triangle';
+                o1.frequency.setValueAtTime(400, now); o1.frequency.linearRampToValueAtTime(800, now + 0.6);
+                o2.frequency.setValueAtTime(404, now); o2.frequency.linearRampToValueAtTime(808, now + 0.6);
+                const g = ctx.createGain(); g.connect(ctx.destination); o1.connect(g); o2.connect(g);
+                g.gain.setValueAtTime(0.2, now); g.gain.linearRampToValueAtTime(0, now + 0.6);
+                o1.start(now); o2.start(now); o1.stop(now + 0.6); o2.stop(now + 0.6);
+            } else if (type === 'win') {
+                const melody = [523, 523, 523, 659, 783, 659, 783, 1046];
+                melody.forEach((freq, i) => {
+                    const o = ctx.createOscillator(); const g = ctx.createGain();
+                    o.connect(g); g.connect(ctx.destination); o.type = 'square'; o.frequency.value = freq;
+                    const t = now + i * 0.15;
+                    g.gain.setValueAtTime(0.1, t); g.gain.exponentialRampToValueAtTime(0.01, t + 0.1);
+                    o.start(t); o.stop(t + 0.2);
+                });
+            } else if (type === 'bonus_start') {
+                // Magical shimmering sound
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain); gain.connect(ctx.destination);
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(400, now);
+                osc.frequency.linearRampToValueAtTime(800, now + 1);
+                gain.gain.setValueAtTime(0, now);
+                gain.gain.linearRampToValueAtTime(0.2, now + 0.5);
+                gain.gain.linearRampToValueAtTime(0, now + 1);
+                osc.start(now); osc.stop(now + 1);
+            }
+        }
+
+        // --- 4. LOGIC ---
+
+        function shuffleArray(array) {
+            let arr = [...array];
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        function setBoxCount(count) {
+            state.boxCount = count;
+            renderApp();
+        }
+
+        function initGame() {
+            // MAIN GRID: Based on state.boxCount
+            let questions = [...STANDARD_QUESTIONS];
+            // Ensure enough questions if needed by duplication/cycling
+            while (questions.length < state.boxCount) { 
+                questions = questions.concat(STANDARD_QUESTIONS.slice(0, state.boxCount - questions.length)); 
+            }
+            questions = shuffleArray(questions).slice(0, state.boxCount);
+
+            // Rumble Numbers
+            const numbers = Array.from({ length: state.boxCount }, (_, i) => i + 1);
+            const shuffledNumbers = shuffleArray(numbers);
+
+            // Map Main Grid
+            state.gridItems = questions.map((item, index) => {
+                const colorClass = GRID_COLORS[index % GRID_COLORS.length];
+                return {
+                    id: index,
+                    ...item,
+                    displayNumber: shuffledNumbers[index],
+                    cleared: false,
+                    gridColor: colorClass
+                };
+            });
+
+            // Prepare Rainbow Bonus Items
+            state.rainbowItems = JSON.parse(JSON.stringify(RAINBOW_SPECIALS));
+
+            state.winner = null;
+            state.activeCard = null;
+            state.showAnswer = false;
+            state.swapInitiatorId = null;
+            
+            playSound('score');
+            state.screen = 'game';
+            renderApp();
+        }
+
+        function startBonusRound() {
+            state.screen = 'bonus';
+            playSound('bonus_start');
+            renderApp();
+        }
+
+        function handleTeamNameChange(id, value) {
+            const team = state.teams.find(t => t.id === id);
+            if (team) team.name = value;
+        }
+
+        function handleCardClick(id, isBonus = false) {
+            if (state.winner) return;
+            
+            const list = isBonus ? state.rainbowItems : state.gridItems;
+            const item = list.find(i => i.id === id);
+
+            if (item && !item.cleared) {
+                playSound('click');
+                state.activeCard = item;
+                state.showAnswer = false;
+                state.swapInitiatorId = null;
+                renderApp();
+            }
+        }
+
+        function revealAnswer() {
+            if (state.activeCard.type === 'swap') playSound('swap');
+            else playSound('reveal');
+            state.showAnswer = true;
+            renderApp();
+        }
+
+        function closeCard() {
+            if (state.activeCard) {
+                const id = state.activeCard.id;
+                
+                // Check where the card came from
+                let item = state.gridItems.find(i => i.id === id);
+                if (!item) item = state.rainbowItems.find(i => i.id === id);
+
+                if (item) item.cleared = true;
+                
+                state.activeCard = null;
+                state.swapInitiatorId = null;
+                
+                // --- AUTO TRANSITION CHECK ---
+                if (state.screen === 'game') {
+                     const remaining = state.gridItems.filter(i => !i.cleared).length;
+                     if (remaining === 0) {
+                         setTimeout(startBonusRound, 1000); // 1 second delay then pop out Phase 2
+                     }
+                }
+
+                renderApp();
+            }
+        }
+
+        function awardPoints(teamId, points) {
+            const team = state.teams.find(t => t.id === teamId);
+            team.score += points;
+            points > 0 ? playSound('score') : playSound('trial');
+            closeCard();
+        }
+
+        function manualAdjustScore(teamId, amount) {
+            const team = state.teams.find(t => t.id === teamId);
+            team.score += amount;
+            renderApp();
+        }
+
+        function setSwapInitiator(teamId) {
+            state.swapInitiatorId = teamId;
+            renderApp();
+        }
+
+        function executeSwap(targetTeamId) {
+            const initiator = state.teams.find(t => t.id === state.swapInitiatorId);
+            const target = state.teams.find(t => t.id === targetTeamId);
+            const temp = initiator.score;
+            initiator.score = target.score;
+            target.score = temp;
+            playSound('swap');
+            closeCard();
+        }
+
+        function declareWinner() {
+            playSound('win');
+            const ranked = [...state.teams].sort((a,b) => b.score - a.score);
+            state.winner = ranked[0];
+            renderApp();
+        }
+
+        function goHome() {
+            state.screen = 'intro';
+            renderApp();
+        }
+
+        // --- 5. RENDER ---
+
+        function renderIcons() {
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+
+        function renderApp() {
+            app.innerHTML = '';
+            if (state.screen === 'intro') app.innerHTML = renderIntroScreen();
+            else if (state.screen === 'bonus') app.innerHTML = renderBonusScreen();
+            else app.innerHTML = renderGameScreen();
+            renderIcons();
+        }
+
+        function renderIntroScreen() {
+            return `
+            <div class="flex flex-col items-center justify-center h-full w-full relative overflow-y-auto py-10">
+                <div class="fixed inset-0 z-0 bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 opacity-90"></div>
+                <div class="fixed inset-0 z-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-30 animate-pulse"></div>
+
+                <div class="z-10 text-center p-6 max-w-5xl w-full flex flex-col items-center animate-fade-in relative">
+                    <div class="mb-8 p-4 bg-white/5 rounded-full backdrop-blur-sm border border-white/10 shadow-2xl">
+                        <i data-lucide="trophy" class="w-16 h-16 text-yellow-400 animate-bounce-gentle"></i>
+                    </div>
+
+                    <h1 class="text-6xl md:text-9xl font-black mb-2 tracking-tight drop-shadow-2xl text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-orange-500 to-red-500">RAINBOW</h1>
+                    <h1 class="text-6xl md:text-9xl font-black mb-6 tracking-tight drop-shadow-2xl text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500">RUMBLE</h1>
+                    <h2 class="text-2xl md:text-4xl font-bold mb-16 text-blue-200 tracking-widest uppercase border-b-2 border-blue-400/30 pb-2">Bible Edition</h2>
+
+                    <div class="w-full bg-black/20 backdrop-blur-md rounded-3xl p-8 mb-8 border border-white/10">
+                        <h3 class="text-xl text-white/60 uppercase tracking-widest font-bold mb-6">Game Settings</h3>
+                        <div class="flex flex-col md:flex-row justify-center items-center gap-4">
+                            <label class="text-white font-bold">Number of Boxes (Phase 1):</label>
+                            <div class="flex flex-wrap justify-center gap-2">
+                                ${[10, 20, 30, 40, 50].map(num => `
+                                    <button 
+                                        onclick="setBoxCount(${num})"
+                                        class="px-4 py-2 rounded-lg font-bold transition ${state.boxCount === num ? 'bg-yellow-500 text-black scale-110 shadow-lg' : 'bg-slate-700 text-white hover:bg-slate-600'}"
+                                    >
+                                        ${num}
+                                    </button>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="w-full bg-black/20 backdrop-blur-md rounded-3xl p-8 mb-12 border border-white/10">
+                        <h3 class="text-xl text-white/60 uppercase tracking-widest font-bold mb-6">Setup Teams</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            ${state.teams.map(team => `
+                                <div class="${team.color} p-4 rounded-xl transform hover:-translate-y-1 transition shadow-lg bg-opacity-90">
+                                    <div class="flex items-center justify-center mb-2 text-white/80"><i data-lucide="users" class="w-6 h-6"></i></div>
+                                    <input type="text" value="${team.name}" oninput="handleTeamNameChange(${team.id}, this.value)" class="bg-transparent text-center text-xl font-bold text-white border-b border-white/30 focus:border-white focus:outline-none w-full placeholder-white/50" />
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+
+                    <button onclick="initGame()" class="group relative px-16 py-6 bg-white text-slate-900 text-3xl font-black rounded-full shadow-lg hover:bg-yellow-300 hover:scale-105 transition-all duration-300 uppercase tracking-widest overflow-hidden">
+                        <span class="relative z-10 flex items-center">Play Game <i data-lucide="arrow-right-left" class="ml-3"></i></span>
+                        <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/50 to-transparent w-1/2 skew-x-12 -translate-x-full group-hover:animate-shine"></div>
+                    </button>
+
+                    <div class="mt-8 text-white font-bold text-base tracking-widest uppercase z-50 drop-shadow-md">
+                        Created and Developed by: Archie Abona
+                    </div>
+                </div>
+            </div>`;
+        }
+
+        function renderGameScreen() {
+            return `
+            <div class="flex flex-col h-full">
+                <header class="bg-slate-800 border-b border-slate-700 p-4 flex justify-between items-center shadow-md z-10 shrink-0">
+                    <div class="flex items-center space-x-3">
+                        <div class="bg-gradient-to-r from-pink-500 to-purple-600 p-2 rounded-lg"><i data-lucide="trophy" class="text-white w-6 h-6"></i></div>
+                        <h1 class="text-xl md:text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-pink-400 to-purple-400 hidden sm:block">Rainbow Rumble</h1>
+                        <span class="text-white/50 text-sm ml-2">Phase 1</span>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <button onclick="state.soundEnabled = !state.soundEnabled; renderApp()" class="p-2 text-slate-400 hover:text-white transition rounded-full hover:bg-slate-700"><i data-lucide="${state.soundEnabled ? 'volume-2' : 'volume-x'}" class="w-5 h-5"></i></button>
+                        <button onclick="declareWinner()" class="flex items-center space-x-2 bg-yellow-500 hover:bg-yellow-400 text-yellow-900 px-4 py-2 rounded-full font-bold transition shadow-lg"><i data-lucide="award" class="w-4 h-4"></i> <span class="hidden sm:inline">Winner</span></button>
+                        <button onclick="initGame()" class="p-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded-full transition" title="Reset Game"><i data-lucide="refresh-cw" class="w-5 h-5"></i></button>
+                        <button onclick="goHome()" class="p-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded-full transition" title="Home"><i data-lucide="home" class="w-5 h-5"></i></button>
+                    </div>
+                </header>
+
+                <main class="flex-1 overflow-y-auto p-4 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]">
+                    <!-- MAIN GRID -->
+                    <div class="w-full max-w-7xl grid grid-cols-5 md:grid-cols-8 gap-2 md:gap-4 mx-auto pb-20">
+                        ${state.gridItems.map((item) => `
+                            <button 
+                                onclick="handleCardClick(${item.id}, false)"
+                                ${item.cleared ? 'disabled' : ''}
+                                class="relative aspect-square rounded-xl shadow-lg transition-all duration-300 transform flex flex-col items-center justify-center overflow-hidden border-b-4 md:border-b-8 
+                                ${item.cleared 
+                                    ? `${item.gridColor} opacity-20 grayscale cursor-default scale-95` 
+                                    : `${item.gridColor} hover:-translate-y-1 hover:shadow-2xl hover:brightness-110 cursor-pointer group`}"
+                            >
+                                ${!item.cleared ? `
+                                    <div class="absolute top-0 left-0 w-full h-full bg-white opacity-10 rounded-xl"></div>
+                                    <span class="text-2xl md:text-4xl font-black drop-shadow-md z-10">${item.displayNumber}</span>
+                                    <span class="absolute bottom-1 md:bottom-2 text-[10px] md:text-xs font-bold uppercase tracking-wider opacity-80">
+                                        ${item.type ? 'Mystery' : item.points}
+                                    </span>
+                                ` : `
+                                    <i data-lucide="check" class="text-white w-8 h-8 opacity-80"></i>
+                                `}
+                            </button>
+                        `).join('')}
+                    </div>
+                </main>
+
+                ${renderFooter()}
+                ${renderModal()}
+                ${renderWinnerModal()}
+            </div>`;
+        }
+
+        function renderBonusScreen() {
+             return `
+            <div class="flex flex-col h-full bg-slate-900">
+                <header class="bg-slate-800 border-b border-slate-700 p-4 flex justify-between items-center shadow-md z-10 shrink-0">
+                    <div class="flex items-center space-x-3">
+                        <div class="bg-gradient-to-r from-pink-500 to-purple-600 p-2 rounded-lg"><i data-lucide="trophy" class="text-white w-6 h-6"></i></div>
+                        <h1 class="text-xl md:text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-pink-400 to-purple-400 hidden sm:block">Rainbow Rumble</h1>
+                        <span class="px-2 py-1 bg-yellow-500 text-black text-xs font-bold rounded uppercase">Phase 2: Rainbow Round</span>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <button onclick="state.soundEnabled = !state.soundEnabled; renderApp()" class="p-2 text-slate-400 hover:text-white transition rounded-full hover:bg-slate-700"><i data-lucide="${state.soundEnabled ? 'volume-2' : 'volume-x'}" class="w-5 h-5"></i></button>
+                        <button onclick="declareWinner()" class="flex items-center space-x-2 bg-yellow-500 hover:bg-yellow-400 text-yellow-900 px-4 py-2 rounded-full font-bold transition shadow-lg"><i data-lucide="award" class="w-4 h-4"></i> <span class="hidden sm:inline">Winner</span></button>
+                        <button onclick="initGame()" class="p-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded-full transition" title="Reset Game"><i data-lucide="refresh-cw" class="w-5 h-5"></i></button>
+                        <button onclick="goHome()" class="p-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded-full transition" title="Home"><i data-lucide="home" class="w-5 h-5"></i></button>
+                    </div>
+                </header>
+
+                <main class="flex-1 overflow-y-auto p-8 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] flex flex-col items-center">
+                    
+                    <div class="text-center mb-8 animate-fade-in">
+                        <h2 class="text-4xl md:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-yellow-500 to-violet-500 mb-2 drop-shadow-lg">RAINBOW ROUND</h2>
+                        <p class="text-white/60 text-xl font-bold uppercase tracking-widest">Select a color for the final challenge</p>
+                    </div>
+
+                    <!-- RAINBOW CARDS ROW -->
+                    <div class="w-full max-w-7xl flex flex-wrap justify-center gap-4 md:gap-8 pb-20">
+                        ${state.rainbowItems.map((item) => `
+                            <button 
+                                onclick="handleCardClick('${item.id}', true)"
+                                ${item.cleared ? 'disabled' : ''}
+                                class="relative w-24 h-48 md:w-32 md:h-64 rounded-2xl shadow-2xl transition-all duration-500 transform flex flex-col items-center justify-center overflow-hidden border-b-8 
+                                ${item.cleared 
+                                    ? 'bg-slate-800 border-slate-900 opacity-30 grayscale cursor-default scale-95' 
+                                    : `${item.displayColor} border-white/20 hover:-translate-y-4 hover:scale-110 hover:shadow-[0_0_30px_rgba(255,255,255,0.4)] cursor-pointer group`}"
+                            >
+                                ${!item.cleared ? `
+                                    <div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
+                                    <div class="absolute top-0 left-0 w-full h-full bg-white opacity-0 group-hover:opacity-20 transition duration-300"></div>
+                                    <span class="text-4xl md:text-6xl font-black drop-shadow-md z-10 text-white/90 writing-vertical-lr rotate-180" style="writing-mode: vertical-rl;">
+                                        ${item.rainbowColor}
+                                    </span>
+                                ` : `
+                                    <i data-lucide="check" class="text-white w-12 h-12 opacity-50"></i>
+                                `}
+                            </button>
+                        `).join('')}
+                    </div>
+                </main>
+
+                ${renderFooter()}
+                ${renderModal()}
+                ${renderWinnerModal()}
+            </div>`;
+        }
+
+        function renderFooter() {
+            return `
+            <footer class="bg-slate-800 border-t border-slate-700 p-2 md:p-4 shadow-lg z-20 shrink-0">
+                <div class="max-w-6xl mx-auto grid grid-cols-3 gap-2 md:gap-8">
+                    ${state.teams.map(team => {
+                        const isLeader = Math.max(...state.teams.map(t => t.score)) === team.score && team.score > 0;
+                        return `
+                        <div class="relative rounded-xl p-2 md:p-3 flex flex-col items-center justify-between transition-all ${team.score >= 1000 ? 'bg-gradient-to-t from-slate-800 to-slate-700 border border-yellow-500/50' : 'bg-slate-700/50'}">
+                            ${isLeader ? `<div class="absolute -top-3 bg-yellow-400 text-yellow-900 text-[10px] md:text-xs font-bold px-2 py-1 rounded-full flex items-center shadow-sm animate-bounce-gentle z-10"><i data-lucide="star" class="w-3 h-3 mr-1 fill-current"></i> LEADER</div>` : ''}
+                            <input value="${team.name}" oninput="handleTeamNameChange(${team.id}, this.value)" class="w-full text-center py-1 px-1 rounded-md mb-1 text-white font-bold text-xs md:text-base shadow-sm ${team.color} border-none focus:ring-2 focus:ring-white outline-none" />
+                            <div class="flex items-center space-x-2 md:space-x-4">
+                                <button onclick="manualAdjustScore(${team.id}, -100)" class="w-6 h-6 md:w-8 md:h-8 flex items-center justify-center rounded-full bg-slate-600 text-slate-300 hover:bg-red-500 hover:text-white transition text-sm font-bold">-</button>
+                                <span class="text-2xl md:text-4xl font-black text-white tabular-nums tracking-tighter min-w-[3ch] text-center">${team.score}</span>
+                                <button onclick="manualAdjustScore(${team.id}, 100)" class="w-6 h-6 md:w-8 md:h-8 flex items-center justify-center rounded-full bg-slate-600 text-slate-300 hover:bg-green-500 hover:text-white transition text-sm font-bold">+</button>
+                            </div>
+                        </div>`;
+                    }).join('')}
+                </div>
+            </footer>`;
+        }
+
+        function renderModal() {
+            if (!state.activeCard) return '';
+            const card = state.activeCard;
+            const isSwap = card.type === 'swap';
+            
+            // Default styling
+            let iconHTML = `<i data-lucide="trophy" class="w-16 h-16 text-yellow-400 mb-4"></i>`;
+            let bgClass = "bg-slate-800";
+            let borderClass = "border-white";
+            let titleText = `FOR ${card.points} POINTS`;
+
+            // SPECIAL RAINBOW MYSTERY HANDLING
+            if (card.rainbowColor) {
+                bgClass = card.modalClass;
+                borderClass = "border-white/50";
+                iconHTML = `<i data-lucide="${card.icon}" class="w-24 h-24 text-white mb-4 animate-bounce-gentle"></i>`;
+                titleText = card.title;
+            } 
+            else if (card.type === 'trial') {
+                iconHTML = `<i data-lucide="alert-triangle" class="w-20 h-20 text-red-500 mb-4 animate-pulse"></i>`;
+                bgClass = "bg-gradient-to-b from-red-900 to-slate-900";
+                borderClass = "border-red-500";
+            }
+             else if (card.type === 'blessing') {
+                iconHTML = `<i data-lucide="gift" class="w-20 h-20 text-yellow-300 mb-4 animate-bounce-gentle"></i>`;
+                bgClass = "bg-gradient-to-b from-yellow-900 to-slate-900";
+                borderClass = "border-yellow-400";
+            }
+
+            return `
+            <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
+                <div class="relative w-full max-w-4xl ${bgClass} border-4 ${borderClass} rounded-3xl p-8 shadow-2xl flex flex-col items-center text-center transform transition-all">
+                    <button onclick="state.activeCard = null; state.swapInitiatorId = null; renderApp()" class="absolute top-4 right-4 p-2 bg-white/10 hover:bg-white/20 rounded-full text-white transition"><i data-lucide="x" class="w-8 h-8"></i></button>
+                    
+                    ${card.rainbowColor ? iconHTML : ''}
+                    <div class="text-white/90 text-2xl font-bold mb-2 uppercase tracking-widest">${titleText}</div>
+                    
+                    <h3 class="text-4xl md:text-5xl font-bold text-white mb-8 leading-tight drop-shadow-md">${card.q}</h3>
+                    
+                    ${!state.showAnswer ? `
+                        <button onclick="revealAnswer()" class="px-8 py-3 bg-white text-slate-900 hover:scale-105 rounded-xl font-bold text-xl transition shadow-lg mb-8 uppercase tracking-wider">Reveal Answer</button>
+                    ` : `
+                        <div class="mb-8 w-full animate-slide-up">
+                            <div class="text-xl text-white/70 mb-2 font-bold uppercase">Answer:</div>
+                            <div class="text-4xl md:text-6xl font-black text-white drop-shadow-xl mb-8">${card.a}</div>
+                            ${isSwap ? renderSwapUI() : `
+                                <div class="w-full">
+                                    <div class="text-white/60 text-sm uppercase tracking-widest mb-4">Award Points To:</div>
+                                    <div class="grid grid-cols-3 gap-4">
+                                        ${state.teams.map(team => `
+                                            <button onclick="awardPoints(${team.id}, ${card.points})" class="${team.color} hover:brightness-110 p-4 rounded-xl flex flex-col items-center justify-center text-white transition transform active:scale-95 shadow-lg border-b-4 border-black/20">
+                                                <span class="font-bold text-lg truncate w-full">${team.name}</span>
+                                                <span class="text-sm opacity-90">${card.points > 0 ? '+' : ''}${card.points}</span>
+                                            </button>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                            `}
+                        </div>
+                    `}
+                    ${!isSwap && state.showAnswer ? `<button onclick="closeCard()" class="mt-4 text-white/50 hover:text-white underline decoration-dashed underline-offset-4">No one answered correctly (Discard)</button>` : ''}
+                </div>
+            </div>`;
+        }
+
+        function renderSwapUI() {
+            if (!state.swapInitiatorId) {
+                return `
+                <div class="w-full bg-black/30 p-6 rounded-2xl border border-white/10">
+                    <p class="text-white/80 text-lg mb-4 font-bold uppercase tracking-widest">Who found this card?</p>
+                    <div class="grid grid-cols-3 gap-4">
+                        ${state.teams.map(team => `
+                            <button onclick="setSwapInitiator(${team.id})" class="${team.color} p-4 rounded-xl text-white font-bold hover:scale-105 transition">${team.name}</button>
+                        `).join('')}
+                    </div>
+                </div>`;
+            } else {
+                const initiator = state.teams.find(t => t.id === state.swapInitiatorId);
+                return `
+                <div class="w-full bg-black/30 p-6 rounded-2xl border border-white/10">
+                    <p class="text-white/80 text-lg mb-4 font-bold uppercase tracking-widest">${initiator.name}, who do you want to swap with?</p>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        ${state.teams.filter(t => t.id !== state.swapInitiatorId).map(team => `
+                            <button onclick="executeSwap(${team.id})" class="${team.color} p-4 rounded-xl text-white font-bold hover:scale-105 transition border-2 border-white">
+                                Swap with ${team.name} (${team.score})
+                            </button>
+                        `).join('')}
+                        <button onclick="closeCard()" class="bg-slate-600 p-4 rounded-xl text-white font-bold hover:bg-slate-500 transition">Keep My Score</button>
+                    </div>
+                </div>`;
+            }
+        }
+
+        function renderWinnerModal() {
+            if (!state.winner) return '';
+            const winner = state.winner;
+            return `
+            <div class="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md animate-fade-in">
+                <div class="relative w-full max-w-3xl bg-gradient-to-br from-yellow-600 via-yellow-500 to-yellow-600 p-1 rounded-3xl shadow-2xl overflow-hidden">
+                    <div class="absolute inset-0 overflow-hidden opacity-20 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] animate-pulse"></div>
+                    <div class="bg-slate-900 rounded-[22px] p-8 md:p-12 text-center relative z-10">
+                        <button onclick="state.winner = null; renderApp()" class="absolute top-4 right-4 text-white/50 hover:text-white"><i data-lucide="x" class="w-8 h-8"></i></button>
+                        <i data-lucide="trophy" class="w-32 h-32 text-yellow-400 mx-auto mb-6 animate-bounce-gentle drop-shadow-[0_0_15px_rgba(250,204,21,0.5)]"></i>
+                        <h2 class="text-4xl md:text-6xl font-black text-white mb-2 uppercase tracking-widest">Champion</h2>
+                        <div class="text-5xl md:text-7xl font-black mb-8 bg-clip-text text-transparent bg-gradient-to-r from-yellow-200 to-yellow-500">${winner.name}</div>
+                        <div class="text-3xl text-white font-bold mb-12 bg-white/10 inline-block px-8 py-2 rounded-full">${winner.score} Points</div>
+                        <button onclick="initGame()" class="mt-8 px-8 py-3 bg-white text-slate-900 font-bold rounded-lg hover:bg-yellow-400 transition">Play Again</button>
+                    </div>
+                </div>
+            </div>`;
+        }
+
+        // Init App
+        renderApp();
+    </script>
 </body>
 </html>
